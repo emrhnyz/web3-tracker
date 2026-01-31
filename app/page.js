@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { ExternalLink, Twitter, Info, Plus, Lock, Unlock, X, Rocket, Hash, Trash2 } from "lucide-react";
+import { ExternalLink, Twitter, Info, Plus, Lock, Unlock, X, Rocket, Hash, Trash2, Pencil } from "lucide-react";
 
 export default function Home() {
   const [projects, setProjects] = useState([]);
@@ -10,6 +10,9 @@ export default function Home() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
   
+  // Düzenleme Takibi için State
+  const [editingId, setEditingId] = useState(null);
+
   // Form verileri
   const [formData, setFormData] = useState({
     category: "",
@@ -57,13 +60,50 @@ export default function Home() {
     }
   };
 
-  const handleAddProject = async () => {
+  // DÜZENLEME MODUNU AÇMA
+  const openEditModal = (project) => {
+    setEditingId(project.id);
+    setFormData({
+      category: project.category,
+      name: project.name,
+      drophunt_link: project.drophunt_link || "",
+      twitter_link: project.twitter_link || "",
+      notes: project.notes || ""
+    });
+    setShowAddModal(true);
+  };
+
+  // YENİ EKLEME MODUNU AÇMA (Formu temizler)
+  const openAddModal = () => {
+    setEditingId(null);
+    setFormData({ category: "", name: "", drophunt_link: "", twitter_link: "", notes: "" });
+    setShowAddModal(true);
+  };
+
+  // KAYDETME VEYA GÜNCELLEME İŞLEMİ
+  const handleSaveProject = async () => {
     if (!formData.name || !formData.category) return alert("İsim ve Kategori şart!");
 
-    const { error } = await supabase.from('projects').insert([formData]);
+    let error;
+
+    if (editingId) {
+      // DÜZENLEME (UPDATE)
+      const { error: updateError } = await supabase
+        .from('projects')
+        .update(formData)
+        .eq('id', editingId);
+      error = updateError;
+    } else {
+      // YENİ EKLEME (INSERT)
+      const { error: insertError } = await supabase
+        .from('projects')
+        .insert([formData]);
+      error = insertError;
+    }
 
     if (!error) {
       setShowAddModal(false);
+      setEditingId(null); // Moddan çık
       setFormData({ category: "", name: "", drophunt_link: "", twitter_link: "", notes: "" });
       fetchProjects();
     } else {
@@ -117,7 +157,7 @@ export default function Home() {
                   <Unlock size={10} /> ADMIN ACTIVE
                 </span>
                 <button 
-                  onClick={() => setShowAddModal(true)}
+                  onClick={openAddModal}
                   className="bg-green-600 hover:bg-green-500 hover:shadow-[0_0_20px_rgba(34,197,94,0.4)] text-black px-5 py-2 rounded font-bold text-sm transition flex items-center gap-2"
                 >
                   <Plus size={18} strokeWidth={3} /> YENİ EKLE
@@ -143,15 +183,26 @@ export default function Home() {
               key={proj.id} 
               className="group relative bg-zinc-900/60 backdrop-blur-md border border-white/10 rounded-xl p-5 hover:border-green-500/40 hover:bg-zinc-900/80 transition-all duration-300 hover:shadow-[0_0_30px_-10px_rgba(34,197,94,0.2)]"
             >
-              {/* SİLME BUTONU */}
+              {/* ADMIN BUTONLARI (SİL VE DÜZENLE) */}
               {isAdmin && (
-                <button 
-                  onClick={() => handleDelete(proj.id)}
-                  className="absolute -top-2 -right-2 bg-red-900/90 hover:bg-red-600 text-red-200 hover:text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg border border-red-500/30 z-20 backdrop-blur"
-                  title="Projeyi Sil"
-                >
-                  <Trash2 size={14} />
-                </button>
+                <div className="absolute -top-2 -right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200 z-20">
+                  {/* Düzenle Butonu */}
+                  <button 
+                    onClick={() => openEditModal(proj)}
+                    className="bg-blue-900/90 hover:bg-blue-600 text-blue-200 hover:text-white p-2 rounded-full shadow-lg border border-blue-500/30 backdrop-blur"
+                    title="Projeyi Düzenle"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                  {/* Sil Butonu */}
+                  <button 
+                    onClick={() => handleDelete(proj.id)}
+                    className="bg-red-900/90 hover:bg-red-600 text-red-200 hover:text-white p-2 rounded-full shadow-lg border border-red-500/30 backdrop-blur"
+                    title="Projeyi Sil"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
               )}
 
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -245,7 +296,8 @@ export default function Home() {
           <div className="bg-zinc-900/90 border border-white/10 p-8 rounded-2xl w-full max-w-lg shadow-[0_0_50px_-20px_rgba(34,197,94,0.3)]">
              <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
               <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                <Plus className="text-green-500" /> PROJE EKLE
+                {editingId ? <Pencil className="text-blue-500" /> : <Plus className="text-green-500" />}
+                {editingId ? "PROJE DÜZENLE" : "PROJE EKLE"}
               </h3>
               <button onClick={() => setShowAddModal(false)}><X size={20} className="text-gray-500 hover:text-white transition" /></button>
             </div>
@@ -295,8 +347,8 @@ export default function Home() {
                 />
               </div>
 
-              <button onClick={handleAddProject} className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-bold py-4 rounded-lg mt-4 transition shadow-lg shadow-green-900/20">
-                LİSTEYE KAYDET
+              <button onClick={handleSaveProject} className={`w-full text-white font-bold py-4 rounded-lg mt-4 transition shadow-lg ${editingId ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-blue-900/20' : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 shadow-green-900/20'}`}>
+                {editingId ? "GÜNCELLE" : "LİSTEYE KAYDET"}
               </button>
             </div>
           </div>
