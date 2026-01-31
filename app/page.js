@@ -72,7 +72,7 @@ export default function Home() {
   };
 
   // Arka plan görsel URL'i (Gönderdiğin görselin adresi)
-  const bgImageUrl = "https://ujwzgraqiyzuqngqslcw.supabase.co/storage/v1/object/public/assets/image_3.png";
+  const bgImageUrl = "/backg.png";
 
   return (
     <div className="min-h-screen text-gray-200 font-sans selection:bg-green-500/30 selection:text-green-200 relative overflow-x-hidden">
