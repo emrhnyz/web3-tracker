@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { ExternalLink, Twitter, Info, Plus, Lock, Unlock, X } from "lucide-react";
+import { ExternalLink, Twitter, Info, Plus, Lock, Unlock, X, Rocket, Hash } from "lucide-react";
 
 export default function Home() {
   const [projects, setProjects] = useState([]);
@@ -19,7 +19,6 @@ export default function Home() {
     notes: ""
   });
 
-  // Verileri çekme fonksiyonu
   const fetchProjects = async () => {
     let { data, error } = await supabase
       .from('projects')
@@ -32,64 +31,66 @@ export default function Home() {
     fetchProjects();
   }, []);
 
-  // Giriş Yapma Logiği
   const handleLogin = () => {
     if (passwordInput === "apopiçtir") {
       setIsAdmin(true);
       setShowLoginModal(false);
       setPasswordInput("");
     } else {
-      alert("Hatalı kod, yetkisiz giriş!");
+      alert("Hatalı kod!");
     }
   };
 
-  // Proje Ekleme Logiği
   const handleAddProject = async () => {
     if (!formData.name || !formData.category) return alert("İsim ve Kategori şart!");
 
-    const { error } = await supabase
-      .from('projects')
-      .insert([formData]);
+    const { error } = await supabase.from('projects').insert([formData]);
 
     if (!error) {
       setShowAddModal(false);
       setFormData({ category: "", name: "", drophunt_link: "", twitter_link: "", notes: "" });
-      fetchProjects(); // Listeyi yenile
+      fetchProjects();
     } else {
-      alert("Hata oluştu: " + error.message);
+      alert("Hata: " + error.message);
     }
   };
 
   return (
-    <div className="min-h-screen bg-black text-gray-200 font-sans selection:bg-green-500 selection:text-black">
-      {/* Arka Plan Efekti */}
-      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-green-900/20 via-black to-black -z-10 pointer-events-none" />
+    <div className="min-h-screen bg-[#050505] text-gray-200 font-sans selection:bg-green-500/30 selection:text-green-200">
+      
+      {/* Arka Plan Grid Efekti */}
+      <div className="fixed inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none -z-10" />
+      <div className="fixed inset-0 bg-[radial-gradient(circle_800px_at_100%_200px,#00ff0010,transparent)] pointer-events-none -z-10" />
 
       {/* Header */}
-      <header className="border-b border-white/10 backdrop-blur-md sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <h1 className="text-xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-600">
-            WEB3 // TRACKER
-          </h1>
+      <header className="border-b border-white/10 backdrop-blur-xl sticky top-0 z-30 bg-black/50">
+        <div className="max-w-5xl mx-auto px-6 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-3 h-3 bg-green-500 rounded-full shadow-[0_0_10px_#22c55e]"></div>
+            <h1 className="text-2xl font-bold tracking-tighter text-white">
+              WEB3 <span className="text-green-500 font-mono">//</span> TRACKER
+            </h1>
+          </div>
           
           <div>
             {!isAdmin ? (
               <button 
                 onClick={() => setShowLoginModal(true)}
-                className="flex items-center gap-2 text-xs font-medium bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-full transition border border-white/5"
+                className="group flex items-center gap-2 text-xs font-bold tracking-wider bg-zinc-900 hover:bg-zinc-800 px-4 py-2 rounded border border-white/10 transition-all hover:border-green-500/50"
               >
-                <Lock size={14} /> GİRİŞ
+                <Lock size={14} className="text-gray-500 group-hover:text-green-500 transition-colors" /> 
+                GİRİŞ
               </button>
             ) : (
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-green-500 font-mono flex items-center gap-1">
-                  <Unlock size={14} /> DÜZENLEME MODU
+              <div className="flex items-center gap-4">
+                <span className="text-[10px] text-green-500 font-mono bg-green-500/10 px-2 py-1 rounded border border-green-500/20 flex items-center gap-1">
+                  <Unlock size={10} /> ADMIN ACTIVE
                 </span>
                 <button 
                   onClick={() => setShowAddModal(true)}
-                  className="bg-green-600 hover:bg-green-500 text-black px-4 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-2"
+                  className="bg-green-600 hover:bg-green-500 hover:shadow-[0_0_20px_rgba(34,197,94,0.4)] text-black px-5 py-2 rounded font-bold text-sm transition flex items-center gap-2"
                 >
-                  <Plus size={16} /> PROJE EKLE
+                  <Plus size={18} strokeWidth={3} /> YENİ EKLE
                 </button>
               </div>
             )}
@@ -97,67 +98,88 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Liste Alanı */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="text-left text-xs font-mono text-gray-500 uppercase tracking-wider border-b border-white/10">
-                <th className="pb-3 pl-4">Kategori</th>
-                <th className="pb-3">Proje İsmi</th>
-                <th className="pb-3">Bağlantılar</th>
-                <th className="pb-3 w-1/3">Notlar</th>
-                <th className="pb-3 text-right pr-4">Bilgi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {projects.map((proj) => (
-                <tr key={proj.id} className="group hover:bg-white/[0.02] transition-colors">
-                  <td className="py-4 pl-4">
-                    <span className="inline-block px-2 py-1 rounded-md bg-white/5 text-[10px] text-gray-300 border border-white/5 font-mono">
+      {/* Ana Liste */}
+      <main className="max-w-5xl mx-auto px-6 py-12">
+        <div className="grid gap-4">
+          
+          {/* Liste Başlığı */}
+          <div className="flex items-center justify-between text-xs font-mono text-gray-500 uppercase tracking-widest px-4 mb-2">
+            <span>Projeler Listesi</span>
+            <span>{projects.length} Kayıt</span>
+          </div>
+
+          {projects.map((proj) => (
+            <div 
+              key={proj.id} 
+              className="group relative bg-zinc-900/40 border border-white/5 rounded-xl p-5 hover:border-green-500/30 hover:bg-zinc-900/60 transition-all duration-300 hover:shadow-[0_0_30px_-10px_rgba(34,197,94,0.15)]"
+            >
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                
+                {/* Sol Taraf: Kategori ve İsim */}
+                <div className="flex flex-col gap-2 min-w-[200px]">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded bg-white/5 border border-white/10 text-xs font-bold text-gray-300 group-hover:text-green-400 group-hover:border-green-500/30 transition-colors font-mono tracking-wide">
+                      <Hash size={10} className="mr-1 opacity-50" />
                       {proj.category}
                     </span>
-                  </td>
-                  <td className="py-4 font-medium text-white">{proj.name}</td>
-                  <td className="py-4">
-                    <div className="flex gap-3">
-                      {proj.drophunt_link && (
-                        <a href={proj.drophunt_link} target="_blank" className="text-gray-400 hover:text-blue-400 transition" title="DropHunt">
-                          <ExternalLink size={16} />
-                        </a>
-                      )}
-                      {proj.twitter_link && (
-                        <a href={proj.twitter_link} target="_blank" className="text-gray-400 hover:text-blue-400 transition" title="Twitter">
-                          <Twitter size={16} />
-                        </a>
-                      )}
-                    </div>
-                  </td>
-                  <td className="py-4 text-sm text-gray-400 leading-relaxed">{proj.notes}</td>
-                  <td className="py-4 text-right pr-4 relative">
-                    <div className="group/info inline-block">
-                      <Info size={16} className="text-gray-600 group-hover/info:text-green-500 cursor-help transition" />
-                      {/* Tooltip */}
-                      <div className="absolute right-8 top-1/2 -translate-y-1/2 opacity-0 group-hover/info:opacity-100 transition-opacity bg-zinc-900 border border-white/10 text-[10px] text-gray-400 px-2 py-1 rounded whitespace-nowrap pointer-events-none z-10 shadow-xl">
-                        Eklendi: {new Date(proj.created_at).toLocaleDateString("tr-TR")}
+                    {/* Bilgi İkonu */}
+                    <div className="relative group/info">
+                      <Info size={14} className="text-gray-700 hover:text-gray-400 cursor-help transition-colors" />
+                      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 opacity-0 group-hover/info:opacity-100 transition-opacity bg-black border border-white/20 text-[10px] text-gray-300 px-3 py-1.5 rounded whitespace-nowrap pointer-events-none z-10">
+                        {new Date(proj.created_at).toLocaleDateString("tr-TR")} tarihinde eklendi
                       </div>
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                  <h3 className="text-xl font-bold text-white group-hover:text-green-50 flex items-center gap-2">
+                    {proj.name}
+                  </h3>
+                </div>
+
+                {/* Orta: Notlar */}
+                <div className="flex-1 text-sm text-gray-400 font-light leading-relaxed border-l border-white/5 pl-6 md:line-clamp-2 line-clamp-3">
+                  {proj.notes || "Not girilmemiş..."}
+                </div>
+
+                {/* Sağ Taraf: Butonlar */}
+                <div className="flex items-center gap-3 shrink-0">
+                  {proj.drophunt_link && (
+                    <a 
+                      href={proj.drophunt_link} 
+                      target="_blank" 
+                      className="flex items-center gap-2 bg-blue-600/10 hover:bg-blue-600 hover:text-white text-blue-400 border border-blue-500/20 hover:border-blue-500 px-4 py-2 rounded-lg text-xs font-bold transition-all uppercase tracking-wide"
+                    >
+                      <Rocket size={14} />
+                      DropHunt
+                    </a>
+                  )}
+                  
+                  {proj.twitter_link && (
+                    <a 
+                      href={proj.twitter_link} 
+                      target="_blank" 
+                      className="p-2 rounded-lg bg-zinc-800 text-gray-400 hover:bg-sky-500 hover:text-white transition-all border border-white/5 hover:border-sky-400"
+                      title="Twitter'a Git"
+                    >
+                      <Twitter size={18} />
+                    </a>
+                  )}
+                </div>
+
+              </div>
+            </div>
+          ))}
+
           {projects.length === 0 && (
-            <div className="text-center py-20 text-gray-600 font-mono text-sm">
-              Henüz proje eklenmemiş.
+            <div className="text-center py-24 border border-dashed border-white/10 rounded-xl bg-white/[0.01]">
+              <div className="text-gray-600 font-mono text-sm">Sistemde henüz kayıtlı proje yok.</div>
             </div>
           )}
         </div>
       </main>
 
-      {/* Giriş Modalı */}
+      {/* MODALLAR (Giriş ve Ekleme - Tasarımları aynı kaldı) */}
       {showLoginModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200">
           <div className="bg-zinc-900 border border-white/10 p-6 rounded-xl w-80 shadow-2xl">
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-bold text-white">Yönetici Girişi</h3>
@@ -166,7 +188,7 @@ export default function Home() {
             <input 
               type="password" 
               placeholder="Giriş kodunu giriniz..." 
-              className="w-full bg-black/50 border border-white/10 rounded-lg p-2 text-white focus:outline-none focus:border-green-500 transition mb-4 text-sm font-mono"
+              className="w-full bg-black border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-green-500 transition mb-4 text-sm font-mono"
               value={passwordInput}
               onChange={(e) => setPasswordInput(e.target.value)}
             />
@@ -177,45 +199,63 @@ export default function Home() {
         </div>
       )}
 
-      {/* Proje Ekleme Modalı */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-zinc-900 border border-white/10 p-6 rounded-xl w-full max-w-md shadow-2xl">
-             <div className="flex justify-between items-center mb-6">
-              <h3 className="font-bold text-green-400 tracking-wide">YENİ PROJE EKLE</h3>
-              <button onClick={() => setShowAddModal(false)}><X size={18} className="text-gray-500 hover:text-white" /></button>
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200">
+          <div className="bg-zinc-900 border border-white/10 p-8 rounded-2xl w-full max-w-lg shadow-[0_0_50px_-20px_rgba(34,197,94,0.3)]">
+             <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
+              <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                <Plus className="text-green-500" /> PROJE EKLE
+              </h3>
+              <button onClick={() => setShowAddModal(false)}><X size={20} className="text-gray-500 hover:text-white transition" /></button>
             </div>
-            <div className="space-y-3">
-              <input 
-                placeholder="Kategori (örn: Layer2, DeFi)" 
-                className="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white focus:border-green-500 focus:outline-none text-sm"
-                value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}
-              />
-              <input 
-                placeholder="Proje İsmi" 
-                className="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white focus:border-green-500 focus:outline-none text-sm"
-                value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})}
-              />
-              <div className="flex gap-2">
-                <input 
-                  placeholder="DropHunt Linki" 
-                  className="w-1/2 bg-black/50 border border-white/10 rounded-lg p-3 text-white focus:border-green-500 focus:outline-none text-sm"
-                  value={formData.drophunt_link} onChange={e => setFormData({...formData, drophunt_link: e.target.value})}
-                />
-                <input 
-                  placeholder="Twitter Linki" 
-                  className="w-1/2 bg-black/50 border border-white/10 rounded-lg p-3 text-white focus:border-green-500 focus:outline-none text-sm"
-                  value={formData.twitter_link} onChange={e => setFormData({...formData, twitter_link: e.target.value})}
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] uppercase text-gray-500 font-bold tracking-wider ml-1">Kategori</label>
+                  <input 
+                    placeholder="Örn: GameFi" 
+                    className="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white focus:border-green-500 focus:outline-none text-sm transition focus:bg-black"
+                    value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] uppercase text-gray-500 font-bold tracking-wider ml-1">Proje İsmi</label>
+                  <input 
+                    placeholder="Örn: Kyuzo's Friends" 
+                    className="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white focus:border-green-500 focus:outline-none text-sm transition focus:bg-black"
+                    value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})}
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-1">
+                 <label className="text-[10px] uppercase text-gray-500 font-bold tracking-wider ml-1">Bağlantılar</label>
+                 <div className="flex gap-2">
+                  <input 
+                    placeholder="DropHunt Linki" 
+                    className="w-1/2 bg-black/50 border border-white/10 rounded-lg p-3 text-white focus:border-blue-500 focus:outline-none text-sm transition focus:bg-black"
+                    value={formData.drophunt_link} onChange={e => setFormData({...formData, drophunt_link: e.target.value})}
+                  />
+                  <input 
+                    placeholder="Twitter Linki" 
+                    className="w-1/2 bg-black/50 border border-white/10 rounded-lg p-3 text-white focus:border-sky-500 focus:outline-none text-sm transition focus:bg-black"
+                    value={formData.twitter_link} onChange={e => setFormData({...formData, twitter_link: e.target.value})}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] uppercase text-gray-500 font-bold tracking-wider ml-1">Notlar</label>
+                <textarea 
+                  placeholder="Proje hakkında önemli detaylar..." 
+                  rows={4}
+                  className="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white focus:border-green-500 focus:outline-none text-sm resize-none transition focus:bg-black"
+                  value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})}
                 />
               </div>
-              <textarea 
-                placeholder="Notlar..." 
-                rows={3}
-                className="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white focus:border-green-500 focus:outline-none text-sm resize-none"
-                value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})}
-              />
-              <button onClick={handleAddProject} className="w-full bg-green-600 hover:bg-green-500 text-black font-bold py-3 rounded-lg mt-2 transition">
-                Listeye Ekle
+
+              <button onClick={handleAddProject} className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-bold py-4 rounded-lg mt-4 transition shadow-lg shadow-green-900/20">
+                LİSTEYE KAYDET
               </button>
             </div>
           </div>
