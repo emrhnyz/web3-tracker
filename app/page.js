@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { ExternalLink, Twitter, Info, Plus, Lock, Unlock, X, Rocket, Hash } from "lucide-react";
+import { ExternalLink, Twitter, Info, Plus, Lock, Unlock, X, Rocket, Hash, Trash2 } from "lucide-react";
 
 export default function Home() {
   const [projects, setProjects] = useState([]);
@@ -41,6 +41,22 @@ export default function Home() {
     }
   };
 
+  // SİLME FONKSİYONU
+  const handleDelete = async (id) => {
+    if (window.confirm("Bu projeyi kalıcı olarak silmek istediğine emin misin?")) {
+      const { error } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', id);
+
+      if (!error) {
+        fetchProjects(); // Listeyi yenile
+      } else {
+        alert("Silinirken hata oluştu: " + error.message);
+      }
+    }
+  };
+
   const handleAddProject = async () => {
     if (!formData.name || !formData.category) return alert("İsim ve Kategori şart!");
 
@@ -55,15 +71,29 @@ export default function Home() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-[#050505] text-gray-200 font-sans selection:bg-green-500/30 selection:text-green-200">
-      
-      {/* Arka Plan Grid Efekti */}
-      <div className="fixed inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none -z-10" />
-      <div className="fixed inset-0 bg-[radial-gradient(circle_800px_at_100%_200px,#00ff0010,transparent)] pointer-events-none -z-10" />
+  // Arka plan görsel URL'i (Gönderdiğin görselin adresi)
+  const bgImageUrl = "https://ujwzgraqiyzuqngqslcw.supabase.co/storage/v1/object/public/assets/image_3.png";
 
-      {/* Header */}
-      <header className="border-b border-white/10 backdrop-blur-xl sticky top-0 z-30 bg-black/50">
+  return (
+    <div className="min-h-screen text-gray-200 font-sans selection:bg-green-500/30 selection:text-green-200 relative overflow-x-hidden">
+      
+      {/* --- ARKA PLAN KATMANLARI --- */}
+      
+      {/* 1. Ana Görsel (En altta) */}
+      <div 
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat -z-30 scale-105 blur-sm"
+        style={{ backgroundImage: `url(${bgImageUrl})` }}
+      />
+      
+      {/* 2. Karartma Perdesi (Görselin üzerinde) */}
+      <div className="fixed inset-0 bg-black/85 -z-20" />
+
+      {/* 3. Grid ve Işık Efektleri (Perdenin üzerinde, doku katar) */}
+      <div className="fixed inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none -z-10" />
+      <div className="fixed inset-0 bg-[radial-gradient(circle_800px_at_100%_200px,#22c55e15,transparent)] pointer-events-none -z-10" />
+
+      {/* --- Header --- */}
+      <header className="border-b border-white/10 backdrop-blur-md sticky top-0 z-30 bg-black/30">
         <div className="max-w-5xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-3 h-3 bg-green-500 rounded-full shadow-[0_0_10px_#22c55e]"></div>
@@ -76,14 +106,14 @@ export default function Home() {
             {!isAdmin ? (
               <button 
                 onClick={() => setShowLoginModal(true)}
-                className="group flex items-center gap-2 text-xs font-bold tracking-wider bg-zinc-900 hover:bg-zinc-800 px-4 py-2 rounded border border-white/10 transition-all hover:border-green-500/50"
+                className="group flex items-center gap-2 text-xs font-bold tracking-wider bg-zinc-900/80 hover:bg-zinc-800 px-4 py-2 rounded border border-white/10 transition-all hover:border-green-500/50"
               >
                 <Lock size={14} className="text-gray-500 group-hover:text-green-500 transition-colors" /> 
                 GİRİŞ
               </button>
             ) : (
               <div className="flex items-center gap-4">
-                <span className="text-[10px] text-green-500 font-mono bg-green-500/10 px-2 py-1 rounded border border-green-500/20 flex items-center gap-1">
+                <span className="text-[10px] text-green-500 font-mono bg-green-500/10 px-2 py-1 rounded border border-green-500/20 flex items-center gap-1 backdrop-blur">
                   <Unlock size={10} /> ADMIN ACTIVE
                 </span>
                 <button 
@@ -98,12 +128,12 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Ana Liste */}
+      {/* --- Ana Liste --- */}
       <main className="max-w-5xl mx-auto px-6 py-12">
         <div className="grid gap-4">
           
           {/* Liste Başlığı */}
-          <div className="flex items-center justify-between text-xs font-mono text-gray-500 uppercase tracking-widest px-4 mb-2">
+          <div className="flex items-center justify-between text-xs font-mono text-gray-400 uppercase tracking-widest px-4 mb-2">
             <span>Projeler Listesi</span>
             <span>{projects.length} Kayıt</span>
           </div>
@@ -111,11 +141,22 @@ export default function Home() {
           {projects.map((proj) => (
             <div 
               key={proj.id} 
-              className="group relative bg-zinc-900/40 border border-white/5 rounded-xl p-5 hover:border-green-500/30 hover:bg-zinc-900/60 transition-all duration-300 hover:shadow-[0_0_30px_-10px_rgba(34,197,94,0.15)]"
+              className="group relative bg-zinc-900/60 backdrop-blur-md border border-white/10 rounded-xl p-5 hover:border-green-500/40 hover:bg-zinc-900/80 transition-all duration-300 hover:shadow-[0_0_30px_-10px_rgba(34,197,94,0.2)]"
             >
+              {/* SİLME BUTONU */}
+              {isAdmin && (
+                <button 
+                  onClick={() => handleDelete(proj.id)}
+                  className="absolute -top-2 -right-2 bg-red-900/90 hover:bg-red-600 text-red-200 hover:text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg border border-red-500/30 z-20 backdrop-blur"
+                  title="Projeyi Sil"
+                >
+                  <Trash2 size={14} />
+                </button>
+              )}
+
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 
-                {/* Sol Taraf: Kategori ve İsim */}
+                {/* Sol Taraf */}
                 <div className="flex flex-col gap-2 min-w-[200px]">
                   <div className="flex items-center gap-2">
                     <span className="inline-flex items-center px-2.5 py-1 rounded bg-white/5 border border-white/10 text-xs font-bold text-gray-300 group-hover:text-green-400 group-hover:border-green-500/30 transition-colors font-mono tracking-wide">
@@ -124,8 +165,8 @@ export default function Home() {
                     </span>
                     {/* Bilgi İkonu */}
                     <div className="relative group/info">
-                      <Info size={14} className="text-gray-700 hover:text-gray-400 cursor-help transition-colors" />
-                      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 opacity-0 group-hover/info:opacity-100 transition-opacity bg-black border border-white/20 text-[10px] text-gray-300 px-3 py-1.5 rounded whitespace-nowrap pointer-events-none z-10">
+                      <Info size={14} className="text-gray-600 hover:text-gray-300 cursor-help transition-colors" />
+                      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 opacity-0 group-hover/info:opacity-100 transition-opacity bg-black/90 border border-white/20 text-[10px] text-gray-300 px-3 py-1.5 rounded whitespace-nowrap pointer-events-none z-10 backdrop-blur">
                         {new Date(proj.created_at).toLocaleDateString("tr-TR")} tarihinde eklendi
                       </div>
                     </div>
@@ -136,7 +177,7 @@ export default function Home() {
                 </div>
 
                 {/* Orta: Notlar */}
-                <div className="flex-1 text-sm text-gray-400 font-light leading-relaxed border-l border-white/5 pl-6 md:line-clamp-2 line-clamp-3">
+                <div className="flex-1 text-sm text-gray-300/80 font-light leading-relaxed border-l border-white/10 pl-6 md:line-clamp-2 line-clamp-3">
                   {proj.notes || "Not girilmemiş..."}
                 </div>
 
@@ -146,7 +187,7 @@ export default function Home() {
                     <a 
                       href={proj.drophunt_link} 
                       target="_blank" 
-                      className="flex items-center gap-2 bg-blue-600/10 hover:bg-blue-600 hover:text-white text-blue-400 border border-blue-500/20 hover:border-blue-500 px-4 py-2 rounded-lg text-xs font-bold transition-all uppercase tracking-wide"
+                      className="flex items-center gap-2 bg-blue-600/10 hover:bg-blue-600/80 hover:text-white text-blue-400 border border-blue-500/20 hover:border-blue-500 px-4 py-2 rounded-lg text-xs font-bold transition-all uppercase tracking-wide backdrop-blur"
                     >
                       <Rocket size={14} />
                       DropHunt
@@ -157,7 +198,7 @@ export default function Home() {
                     <a 
                       href={proj.twitter_link} 
                       target="_blank" 
-                      className="p-2 rounded-lg bg-zinc-800 text-gray-400 hover:bg-sky-500 hover:text-white transition-all border border-white/5 hover:border-sky-400"
+                      className="p-2 rounded-lg bg-zinc-800/50 text-gray-400 hover:bg-sky-500/80 hover:text-white transition-all border border-white/10 hover:border-sky-400 backdrop-blur"
                       title="Twitter'a Git"
                     >
                       <Twitter size={18} />
@@ -170,17 +211,17 @@ export default function Home() {
           ))}
 
           {projects.length === 0 && (
-            <div className="text-center py-24 border border-dashed border-white/10 rounded-xl bg-white/[0.01]">
-              <div className="text-gray-600 font-mono text-sm">Sistemde henüz kayıtlı proje yok.</div>
+            <div className="text-center py-24 border border-dashed border-white/10 rounded-xl bg-black/20 backdrop-blur-sm">
+              <div className="text-gray-500 font-mono text-sm">Sistemde henüz kayıtlı proje yok.</div>
             </div>
           )}
         </div>
       </main>
 
-      {/* MODALLAR (Giriş ve Ekleme - Tasarımları aynı kaldı) */}
+      {/* --- MODALLAR --- */}
       {showLoginModal && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200">
-          <div className="bg-zinc-900 border border-white/10 p-6 rounded-xl w-80 shadow-2xl">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 animate-in fade-in duration-200">
+          <div className="bg-zinc-900/90 border border-white/10 p-6 rounded-xl w-80 shadow-2xl">
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-bold text-white">Yönetici Girişi</h3>
               <button onClick={() => setShowLoginModal(false)}><X size={18} className="text-gray-500 hover:text-white" /></button>
@@ -188,7 +229,7 @@ export default function Home() {
             <input 
               type="password" 
               placeholder="Giriş kodunu giriniz..." 
-              className="w-full bg-black border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-green-500 transition mb-4 text-sm font-mono"
+              className="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-green-500 transition mb-4 text-sm font-mono"
               value={passwordInput}
               onChange={(e) => setPasswordInput(e.target.value)}
             />
@@ -200,8 +241,8 @@ export default function Home() {
       )}
 
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200">
-          <div className="bg-zinc-900 border border-white/10 p-8 rounded-2xl w-full max-w-lg shadow-[0_0_50px_-20px_rgba(34,197,94,0.3)]">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 animate-in fade-in duration-200">
+          <div className="bg-zinc-900/90 border border-white/10 p-8 rounded-2xl w-full max-w-lg shadow-[0_0_50px_-20px_rgba(34,197,94,0.3)]">
              <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
               <h3 className="text-xl font-bold text-white flex items-center gap-2">
                 <Plus className="text-green-500" /> PROJE EKLE
