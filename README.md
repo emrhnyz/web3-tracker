@@ -1,16 +1,6 @@
 # 🟢 Web3 Project Tracker
 
-A stylish, cyberpunk-themed personal dashboard to track Web3, Blockchain, and Airdrop projects. Built with **Next.js** and **Supabase**.
-
-## 🚀 Features
-
-- **Cyberpunk UI:** Dark mode, neon glows, and glassmorphism effects.
-- **Admin System:** Hidden login modal to access administrative features.
-- **CRUD Operations:**
-  - **Create:** Add new projects to the list.
-  - **Read:** Publicly viewable list of projects.
-  - **Update:** Edit existing project details (Admin only).
-  - **Delete:** Remove projects with confirmation (Admin only).
+Personal dashboard to track Web3, Blockchain, and Airdrop projects. Built with **Next.js** and **Supabase**.
 
 ## 🛠️ Tech Stack
 
